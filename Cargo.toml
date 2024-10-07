@@ -3,6 +3,23 @@ name = "asynk-strim"
 version = "0.1.0"
 edition = "2021"
 
+# crates.io metadata
+rust-version = "1.83"
+description = "Lightweight stream generator library"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/aumetra/asynk-strim.git"
+categories = ["asynchronous", "no-std", "no-std::no-alloc"]
+keywords = ["async", "no_std", "stream"]
+
+# Make crate as small as possible
+include = [
+  "src/**/*.rs",
+  "Cargo.toml",
+  "README.md",
+  "LICENSE-APACHE",
+  "LICENSE-MIT",
+]
+
 [[bench]]
 name = "bench"
 harness = false
