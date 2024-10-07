@@ -46,7 +46,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run tests through miri
         env:
-          RUSTFLAGS: "-Z randomize-layout"
+          RUSTFLAGS: "-Zrandomize-layout"
         run: cargo hack miri test --feature-powerset
 
   address-sanitizer:
@@ -62,5 +62,5 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run tests through address sanitizer
         env:
-          RUSTFLAGS: "-Z randomize-layout"
+          RUSTFLAGS: "-Zrandomize-layout -Zsanitizer=address"
         run: cargo hack test --feature-powerset -Zbuild-std --target x86_64-unknown-linux-gnu
