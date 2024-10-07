@@ -1,0 +1,22 @@
+[package]
+name = "asynk-strim"
+version = "0.1.0"
+edition = "2021"
+
+[[bench]]
+name = "bench"
+harness = false
+
+[dependencies]
+futures-core = { version = "0.3.30", default-features = false }
+pin-project-lite = "0.2.14"
+
+[dev-dependencies]
+async-fn-stream = "0.2.2"
+async-stream = "0.3.6"
+divan = "0.1.14"
+futures-lite = { version = "2.3.0", default-features = false, features = [
+  "std",
+] }
+mimalloc = "0.1.43"
+trybuild = "1.0.99"
