@@ -49,7 +49,7 @@ where
 /// # use futures_lite::StreamExt;
 /// # use std::pin::pin;
 /// # futures_lite::future::block_on(async {
-/// let stream = asynk_strim::create_stream(|mut yielder| async move {
+/// let stream = asynk_strim::stream_fn(|mut yielder| async move {
 ///    yielder.yield_item("Fahr den Imsi-Catcher hoch").await;
 ///    yielder.yield_item("Mach das Richtmikro an").await;
 ///    yielder.yield_item("Bring Alexa auf den Markt").await;
@@ -66,7 +66,7 @@ where
 /// }
 /// # });
 #[inline]
-pub fn create_stream<F, Item, Fut>(func: F) -> impl Stream<Item = Item>
+pub fn stream_fn<F, Item, Fut>(func: F) -> impl Stream<Item = Item>
 where
     F: FnOnce(Yielder<Item>) -> Fut,
     Fut: Future<Output = ()>,
@@ -74,14 +74,14 @@ where
     crate::stream::init(func)
 }
 
-/// Jokey alias for `create_stream`
+/// Jokey alias for [`stream_fn`]
 ///
-/// For more elaborate documentation, see [`create_stream`]
+/// For more elaborate documentation, see [`stream_fn`]
 #[inline]
 pub fn strim_fn<F, Item, Fut>(func: F) -> impl Stream<Item = Item>
 where
     F: FnOnce(Yielder<Item>) -> Fut,
     Fut: Future<Output = ()>,
 {
-    create_stream(func)
+    stream_fn(func)
 }

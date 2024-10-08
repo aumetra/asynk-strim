@@ -23,7 +23,7 @@ Features:
 use futures_lite::stream;
 use std::pin::pin;
 
-let stream = pin!(asynk_strim::strim_fn(|mut yielder| async move {
+let stream = pin!(asynk_strim::stream_fn(|mut yielder| async move {
     yielder.yield_item("hello world!").await;
     yielder.yield_item("pretty neato, ain't it?").await;
 }));
