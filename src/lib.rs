@@ -9,9 +9,12 @@ use core::{future::Future, pin::pin, task};
 use futures_core::Stream;
 
 mod stream;
+mod try_stream;
+mod try_yielder;
 mod waker;
 mod yielder;
 
+pub use self::try_yielder::TryYielder;
 pub use self::yielder::Yielder;
 
 /// Unwrap the waker
@@ -84,4 +87,55 @@ where
     Fut: Future<Output = ()>,
 {
     stream_fn(func)
+}
+
+/// Create a new try stream
+///
+/// # Example
+///
+/// Let's yield some lyrics (Song: "Verdächtig" by Systemabsturz):
+///
+/// ```
+/// # use futures_lite::StreamExt;
+/// # use std::pin::pin;
+/// # use std::convert::Infallible;
+/// # futures_lite::future::block_on(async {
+/// let stream = asynk_strim::try_stream_fn(|mut yielder| async move {
+///   yielder.yield_ok("Fahr den Imsi-Catcher hoch").await;
+///   yielder.yield_ok("Mach das Richtmikro an").await;
+///   yielder.yield_ok("Bring Alexa auf den Markt").await;
+///   yielder.yield_ok("Zapf den Netzknoten an").await;
+///   yielder.yield_ok("Fahr den Ü-Wagen vor").await;
+///   yielder.yield_ok("Kauf den Staatstrojaner ein").await;
+///   yielder.yield_ok("Fake die Exit-Nodes bei Tor").await;
+///   yielder.yield_ok("Ihr wollt doch alle sicher sein").await;
+///
+///   Ok::<_, Infallible>(())
+/// });
+///
+/// let mut stream = pin!(stream);
+/// while let Some(item) = stream.next().await {
+///   println!("{item:?}");
+/// }
+/// # });
+/// ```
+#[inline]
+pub fn try_stream_fn<F, Ok, Error, Fut>(func: F) -> impl Stream<Item = Result<Ok, Error>>
+where
+    F: FnOnce(TryYielder<Ok, Error>) -> Fut,
+    Fut: Future<Output = Result<(), Error>>,
+{
+    crate::try_stream::init(func)
+}
+
+/// Jokey alias for [`try_stream_fn`]
+///
+/// For more elaborate documentation, see [`try_stream_fn`]
+#[inline]
+pub fn try_strim_fn<F, Ok, Error, Fut>(func: F) -> impl Stream<Item = Result<Ok, Error>>
+where
+    F: FnOnce(TryYielder<Ok, Error>) -> Fut,
+    Fut: Future<Output = Result<(), Error>>,
+{
+    try_stream_fn(func)
 }
