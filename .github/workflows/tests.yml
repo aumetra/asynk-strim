@@ -31,8 +31,6 @@ jobs:
         with:
           toolchain: "nightly"
           components: "rustfmt"
-      - uses: taiki-e/install-action@cargo-hack
-      - uses: Swatinem/rust-cache@v2
       - name: Run checks
         run: cargo fmt --all -- --check
 
