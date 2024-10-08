@@ -44,7 +44,7 @@ where
 /// # Example
 ///
 /// Let's yield some lyrics (Song: "Verdächtig" by Systemabsturz):
-/// 
+///
 /// ```
 /// # use futures_lite::StreamExt;
 /// # use std::pin::pin;

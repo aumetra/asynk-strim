@@ -22,6 +22,20 @@ jobs:
       - name: Run checks
         run: cargo hack clippy --feature-powerset --no-dev-deps -- -D warnings
 
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "nightly"
+          components: "rustfmt"
+      - uses: taiki-e/install-action@cargo-hack
+      - uses: Swatinem/rust-cache@v2
+      - name: Run checks
+        run: cargo fmt --all -- --check
+
   tests:
     name: Tests
     runs-on: ubuntu-latest
@@ -50,8 +64,12 @@ jobs:
         run: cargo hack miri test --feature-powerset
 
   address-sanitizer:
-    name: Address sanitizer
+    name: "Sanitizer: ${{ matrix.sanitizer }}"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address, memory, thread, leak]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
@@ -60,7 +78,10 @@ jobs:
           components: "rust-src"
       - uses: taiki-e/install-action@cargo-hack
       - uses: Swatinem/rust-cache@v2
-      - name: Run tests through address sanitizer
+      - name: "Run tests through ${{ matrix.sanitizer }} sanitizer"
         env:
-          RUSTFLAGS: "-Zrandomize-layout -Zsanitizer=address"
+          ASAN_OPTIONS: "detect_stack_use_after_return=1"
+          RUST_BACKTRACE: "0"
+          RUSTDOCFLAGS: "-Zrandomize-layout -Zsanitizer=${{ matrix.sanitizer }}"
+          RUSTFLAGS: "-Zrandomize-layout -Zsanitizer=${{ matrix.sanitizer }}"
         run: cargo hack test --feature-powerset -Zbuild-std --target x86_64-unknown-linux-gnu
