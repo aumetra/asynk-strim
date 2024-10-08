@@ -17,6 +17,23 @@ Features:
 >
 > While you can't use the yielder inside the unwrapped future, stuff like `embassy` should work again.
 
+## Example
+
+```rust
+use futures_lite::stream;
+use std::pin::pin;
+
+let stream = pin!(asynk_strim::strim_fn(|mut yielder| async move {
+    yielder.yield_item("hello world!").await;
+    yielder.yield_item("pretty neato, ain't it?").await;
+}));
+
+let mut stream = stream::block_on(stream);
+assert_eq!(stream.next(), Some("hello world!"));
+assert_eq!(stream.next(), Some("pretty neato, ain't it?"));
+assert_eq!(stream.next(), None);
+```
+
 ## Comparisons
 
 ### `async-stream`
