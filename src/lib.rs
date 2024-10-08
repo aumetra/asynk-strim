@@ -40,11 +40,48 @@ where
 }
 
 /// Create a new stream
+///
+/// # Example
+///
+/// Let's yield some lyrics (Song: "Verdächtig" by Systemabsturz):
+///
+/// ```
+/// # use futures_lite::StreamExt;
+/// # use std::pin::pin;
+/// # futures_lite::future::block_on(async {
+/// let stream = asynk_strim::stream_fn(|mut yielder| async move {
+///    yielder.yield_item("Fahr den Imsi-Catcher hoch").await;
+///    yielder.yield_item("Mach das Richtmikro an").await;
+///    yielder.yield_item("Bring Alexa auf den Markt").await;
+///    yielder.yield_item("Zapf den Netzknoten an").await;
+///    yielder.yield_item("Fahr den Ü-Wagen vor").await;
+///    yielder.yield_item("Kauf den Staatstrojaner ein").await;
+///    yielder.yield_item("Fake die Exit-Nodes bei Tor").await;
+///    yielder.yield_item("Ihr wollt doch alle sicher sein").await;
+/// });
+///
+/// let mut stream = pin!(stream);
+/// while let Some(item) = stream.next().await {
+///    println!("{item}");
+/// }
+/// # });
+#[inline]
+pub fn stream_fn<F, Item, Fut>(func: F) -> impl Stream<Item = Item>
+where
+    F: FnOnce(Yielder<Item>) -> Fut,
+    Fut: Future<Output = ()>,
+{
+    crate::stream::init(func)
+}
+
+/// Jokey alias for [`stream_fn`]
+///
+/// For more elaborate documentation, see [`stream_fn`]
 #[inline]
 pub fn strim_fn<F, Item, Fut>(func: F) -> impl Stream<Item = Item>
 where
     F: FnOnce(Yielder<Item>) -> Fut,
     Fut: Future<Output = ()>,
 {
-    crate::stream::init(func)
+    stream_fn(func)
 }
