@@ -63,13 +63,6 @@ impl<Item> Yielder<Item> {
         }
     }
 
-    pub(crate) fn duplicate(&self) -> Self {
-        Self {
-            _marker: PhantomData,
-            stream_address: self.stream_address,
-        }
-    }
-
     /// Yield an item from the stream
     #[inline]
     pub async fn yield_item(&mut self, item: Item) {

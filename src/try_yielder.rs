@@ -6,12 +6,6 @@ pub struct TryYielder<Ok, Error> {
 }
 
 impl<Ok, Error> TryYielder<Ok, Error> {
-    pub(crate) fn duplicate(&self) -> Self {
-        Self {
-            yielder: self.yielder.duplicate(),
-        }
-    }
-
     /// Yield a success value from the stream
     #[inline]
     pub async fn yield_ok(&mut self, item: Ok) {

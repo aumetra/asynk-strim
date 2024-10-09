@@ -92,7 +92,7 @@ where
 ///
 /// # Example
 ///
-/// Let's yield some lyrics (Song: "Verdächtig" by Systemabsturz):
+/// Let's yield some lyrics (Song: "Archbombe" by Systemabsturz):
 ///
 /// ```
 /// # use futures_lite::StreamExt;
@@ -100,16 +100,13 @@ where
 /// # use std::convert::Infallible;
 /// # futures_lite::future::block_on(async {
 /// let stream = asynk_strim::try_stream_fn(|mut yielder| async move {
-///   yielder.yield_ok("Fahr den Imsi-Catcher hoch").await;
-///   yielder.yield_ok("Mach das Richtmikro an").await;
-///   yielder.yield_ok("Bring Alexa auf den Markt").await;
-///   yielder.yield_ok("Zapf den Netzknoten an").await;
-///   yielder.yield_ok("Fahr den Ü-Wagen vor").await;
-///   yielder.yield_ok("Kauf den Staatstrojaner ein").await;
-///   yielder.yield_ok("Fake die Exit-Nodes bei Tor").await;
-///   yielder.yield_ok("Ihr wollt doch alle sicher sein").await;
+///   yielder.yield_ok("Meine Programme habe ich mal ausgecheckt").await;
+///   yielder.yield_ok("Dass ich mit Zündern reden kann finde ich suspekt").await;
+///   yielder.yield_ok("Meine Codezeilen haben anfangs Hippies geschrieben").await;
+///   yielder.yield_error("Von ihrem Pazifismus ist nicht viel geblieben").await;
+///   yielder.yield_ok("Ich bin echt nicht glücklich und nicht einverstanden").await;
 ///
-///   Ok::<_, Infallible>(())
+///   Err("Ich als Bombensteuerung soll auf Menschen landen")
 /// });
 ///
 /// let mut stream = pin!(stream);
@@ -124,13 +121,13 @@ where
     F: FnOnce(TryYielder<Ok, Error>) -> Fut,
     Fut: Future<Output = Result<(), Error>>,
 {
-    let func = |mut yielder: TryYielder<_, _>| async move {
-        if let Err(err) = func(yielder.duplicate()).await {
+    crate::stream::init(|mut yielder: TryYielder<_, _>| async move {
+        // trivially copyable. bit-wise copy is fine.
+        #[allow(unsafe_code)]
+        if let Err(err) = func(unsafe { core::ptr::read(&yielder) }).await {
             yielder.yield_error(err).await;
         }
-    };
-
-    crate::stream::init(func)
+    })
 }
 
 /// Jokey alias for [`try_stream_fn`]
