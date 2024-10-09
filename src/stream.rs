@@ -11,10 +11,11 @@ use futures_core::{FusedStream, Stream};
 use pin_project_lite::pin_project;
 
 #[inline]
-pub fn init<F, Fut, Item>(func: F) -> impl Stream<Item = Item>
+pub fn init<F, Fut, Yieldr, Item>(func: F) -> impl Stream<Item = Item>
 where
-    F: FnOnce(Yielder<Item>) -> Fut,
+    F: FnOnce(Yieldr) -> Fut,
     Fut: Future<Output = ()>,
+    Yieldr: From<Yielder<Item>>,
 {
     AsynkStrim::Initial { func: Some(func) }
 }
@@ -27,7 +28,7 @@ pin_project! {
     /// Doing this will trigger undefined behaviour.
     #[project = AsynkStrimProj]
     #[project(!Unpin)]
-    enum AsynkStrim<F, Fut, Item> {
+    enum AsynkStrim<F, Fut, Yieldr, Item> {
         Initial {
             func: Option<F>,
         },
@@ -38,14 +39,16 @@ pin_project! {
         Done,
         MarkerStuff {
             _item: PhantomData<Item>,
+            _yieldr: PhantomData<Yieldr>,
         }
     }
 }
 
-impl<F, Fut, Item> Stream for AsynkStrim<F, Fut, Item>
+impl<F, Fut, Yieldr, Item> Stream for AsynkStrim<F, Fut, Yieldr, Item>
 where
-    F: FnOnce(Yielder<Item>) -> Fut,
+    F: FnOnce(Yieldr) -> Fut,
     Fut: Future<Output = ()>,
+    Yieldr: From<Yielder<Item>>,
 {
     type Item = Item;
 
@@ -61,7 +64,7 @@ where
                     // we actually only do this to be able to use `.take()` to remove the function from the future.
                     #[allow(unsafe_code)]
                     let func = unsafe { func.take().unwrap_unchecked() };
-                    let fut = func(Yielder::new(stream_address));
+                    let fut = func(<_>::from(Yielder::new(stream_address)));
 
                     self.set(Self::Progress { fut });
                 }
@@ -92,10 +95,11 @@ where
     }
 }
 
-impl<F, Fut, Item> FusedStream for AsynkStrim<F, Fut, Item>
+impl<F, Fut, Y, Item> FusedStream for AsynkStrim<F, Fut, Y, Item>
 where
-    F: FnOnce(Yielder<Item>) -> Fut,
+    F: FnOnce(Y) -> Fut,
     Fut: Future<Output = ()>,
+    Y: From<Yielder<Item>>,
 {
     #[inline]
     fn is_terminated(&self) -> bool {

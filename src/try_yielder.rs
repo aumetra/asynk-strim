@@ -6,26 +6,29 @@ pub struct TryYielder<Ok, Error> {
 }
 
 impl<Ok, Error> TryYielder<Ok, Error> {
-    #[inline]
-    pub(crate) fn new(yielder: Yielder<Result<Ok, Error>>) -> Self {
-        Self { yielder }
-    }
-
-    /// Yield a result from the stream
-    #[inline]
-    pub async fn yield_result(&mut self, item: Result<Ok, Error>) {
-        self.yielder.yield_item(item).await;
+    pub(crate) fn duplicate(&self) -> Self {
+        Self {
+            yielder: self.yielder.duplicate(),
+        }
     }
 
     /// Yield a success value from the stream
     #[inline]
     pub async fn yield_ok(&mut self, item: Ok) {
-        self.yield_result(Ok(item)).await;
+        self.yielder.yield_item(Ok(item)).await;
     }
 
     /// Yield an error value from the stream
     #[inline]
     pub async fn yield_error(&mut self, item: Error) {
-        self.yield_result(Err(item)).await;
+        self.yielder.yield_item(Err(item)).await;
+    }
+}
+
+#[doc(hidden)]
+impl<Ok, Error> From<Yielder<Result<Ok, Error>>> for TryYielder<Ok, Error> {
+    #[inline]
+    fn from(yielder: Yielder<Result<Ok, Error>>) -> Self {
+        Self { yielder }
     }
 }

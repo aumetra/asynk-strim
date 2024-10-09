@@ -9,7 +9,6 @@ use core::{future::Future, pin::pin, task};
 use futures_core::Stream;
 
 mod stream;
-mod try_stream;
 mod try_yielder;
 mod waker;
 mod yielder;
@@ -125,7 +124,13 @@ where
     F: FnOnce(TryYielder<Ok, Error>) -> Fut,
     Fut: Future<Output = Result<(), Error>>,
 {
-    crate::try_stream::init(func)
+    let func = |mut yielder: TryYielder<_, _>| async move {
+        if let Err(err) = func(yielder.duplicate()).await {
+            yielder.yield_error(err).await;
+        }
+    };
+
+    crate::stream::init(func)
 }
 
 /// Jokey alias for [`try_stream_fn`]
