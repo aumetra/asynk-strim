@@ -9,9 +9,11 @@ use core::{future::Future, pin::pin, task};
 use futures_core::Stream;
 
 mod stream;
+mod try_yielder;
 mod waker;
 mod yielder;
 
+pub use self::try_yielder::TryYielder;
 pub use self::yielder::Yielder;
 
 /// Unwrap the waker
@@ -84,4 +86,58 @@ where
     Fut: Future<Output = ()>,
 {
     stream_fn(func)
+}
+
+/// Create a new try stream
+///
+/// # Example
+///
+/// Let's yield some lyrics (Song: "Archbombe" by Systemabsturz):
+///
+/// ```
+/// # use futures_lite::StreamExt;
+/// # use std::pin::pin;
+/// # use std::convert::Infallible;
+/// # futures_lite::future::block_on(async {
+/// let stream = asynk_strim::try_stream_fn(|mut yielder| async move {
+///   yielder.yield_ok("Meine Programme habe ich mal ausgecheckt").await;
+///   yielder.yield_ok("Dass ich mit Zündern reden kann finde ich suspekt").await;
+///   yielder.yield_ok("Meine Codezeilen haben anfangs Hippies geschrieben").await;
+///   yielder.yield_error("Von ihrem Pazifismus ist nicht viel geblieben").await;
+///   yielder.yield_ok("Ich bin echt nicht glücklich und nicht einverstanden").await;
+///
+///   Err("Ich als Bombensteuerung soll auf Menschen landen")
+/// });
+///
+/// let mut stream = pin!(stream);
+/// while let Some(item) = stream.next().await {
+///   println!("{item:?}");
+/// }
+/// # });
+/// ```
+#[inline]
+pub fn try_stream_fn<F, Ok, Error, Fut>(func: F) -> impl Stream<Item = Result<Ok, Error>>
+where
+    F: FnOnce(TryYielder<Ok, Error>) -> Fut,
+    Fut: Future<Output = Result<(), Error>>,
+{
+    crate::stream::init(|mut yielder: TryYielder<_, _>| async move {
+        // trivially copyable. bit-wise copy is fine.
+        #[allow(unsafe_code)]
+        if let Err(err) = func(unsafe { core::ptr::read(&yielder) }).await {
+            yielder.yield_error(err).await;
+        }
+    })
+}
+
+/// Jokey alias for [`try_stream_fn`]
+///
+/// For more elaborate documentation, see [`try_stream_fn`]
+#[inline]
+pub fn try_strim_fn<F, Ok, Error, Fut>(func: F) -> impl Stream<Item = Result<Ok, Error>>
+where
+    F: FnOnce(TryYielder<Ok, Error>) -> Fut,
+    Fut: Future<Output = Result<(), Error>>,
+{
+    try_stream_fn(func)
 }

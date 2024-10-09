@@ -8,14 +8,15 @@ Features:
 - one dependency (besides `futures-core` which I don't count since it provides the `Stream` definition)
 - `no_std`-compatible, zero allocations
 
-> [!IMPORTANT]  
-> This crate adds a wrapper around the wakers that contains data and pointers needed to yield items.
-> Crates like [`embassy`](https://embassy.dev) use a similar approach and will therefore clash with us.
->
-> If you run into this issue (which will manifest as a runtime panic), you can use the `unwrap_waker` function.
-> This function will wrap a future and remove the waker wrapper.
->
-> While you can't use the yielder inside the unwrapped future, stuff like `embassy` should work again.
+### ⚠ Important
+
+This crate adds a wrapper around the wakers that contains data and pointers needed to yield items.
+Crates like [`embassy`](https://embassy.dev) use a similar approach and will therefore clash with us.
+
+If you run into this issue (which will manifest as a runtime panic), you can use the `unwrap_waker` function.
+This function will wrap a future and remove the waker wrapper.
+
+While you can't use the yielder inside the unwrapped future, stuff like `embassy` should work again.
 
 ## Example
 

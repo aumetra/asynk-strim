@@ -5,16 +5,12 @@ use core::{
     task::{self, Poll},
 };
 
-struct YieldFuture<'a, Item> {
+struct YieldFuture<Item> {
     item: Option<Item>,
     stream_address: usize,
-
-    // Here to catch some API misuse
-    // Nothing safety relevant. It would just panic at runtime which isn't ideal.
-    _lifetime_invariant: PhantomData<&'a mut ()>,
 }
 
-impl<Item> Future for YieldFuture<'_, Item> {
+impl<Item> Future for YieldFuture<Item> {
     type Output = ();
 
     #[inline]
@@ -50,7 +46,7 @@ impl<Item> Future for YieldFuture<'_, Item> {
     }
 }
 
-impl<Item> Unpin for YieldFuture<'_, Item> {}
+impl<Item> Unpin for YieldFuture<Item> {}
 
 /// Handle to allow you to yield something from the stream
 pub struct Yielder<Item> {
@@ -69,12 +65,12 @@ impl<Item> Yielder<Item> {
 
     /// Yield an item from the stream
     #[inline]
-    pub fn yield_item(&mut self, item: Item) -> impl Future<Output = ()> + '_ {
-        YieldFuture {
+    pub async fn yield_item(&mut self, item: Item) {
+        let future = YieldFuture {
             item: Some(item),
             stream_address: self.stream_address,
+        };
 
-            _lifetime_invariant: PhantomData,
-        }
+        future.await;
     }
 }
