@@ -50,7 +50,7 @@ impl<Item> Unpin for YieldFuture<Item> {}
 
 /// Handle to allow you to yield something from the stream
 pub struct Yielder<Item> {
-    _marker: PhantomData<Item>,
+    _marker: PhantomData<fn(Item) -> Item>,
     stream_address: usize,
 }
 

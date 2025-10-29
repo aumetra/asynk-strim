@@ -1,0 +1,13 @@
+error[E0597]: `v` does not live long enough
+ --> tests/ui/use_after_free.rs:9:25
+  |
+ 8 |             let v = vec![0; 10];
+   |                 - binding `v` declared here
+ 9 |             let v_ref = &v;
+   |                         ^^ borrowed value does not live long enough
+...
+19 |         };
+   |         - `v` dropped here while still borrowed
+20 |         // use-after-free
+21 |         println!("{outer:?}");
+   |                    ----- borrow later used here
