@@ -49,7 +49,7 @@ jobs:
       - uses: taiki-e/install-action@cargo-hack
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo hack test --feature-powerset
+        run: cargo hack test --feature-powerset ${{ matrix.toolchain == 'stable' && '-- --include-ignored' }}
 
   miri:
     name: Miri
