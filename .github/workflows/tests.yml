@@ -37,13 +37,19 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: ["1.83", "stable", "nightly"]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "${{ matrix.toolchain }}"
       - uses: taiki-e/install-action@cargo-hack
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo hack test --feature-powerset
+        run: cargo hack test --feature-powerset ${{ matrix.toolchain == 'stable' && '-- --include-ignored' }}
 
   miri:
     name: Miri

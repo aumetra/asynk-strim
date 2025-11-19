@@ -1,7 +1,6 @@
 use crate::yielder::Yielder;
 use core::{
     future::Future,
-    hint::unreachable_unchecked,
     marker::PhantomData,
     pin::Pin,
     ptr,
@@ -62,8 +61,7 @@ where
                     // this state is never initialized with `func` set to `None`.
                     //
                     // we actually only do this to be able to use `.take()` to remove the function from the future.
-                    #[allow(unsafe_code)]
-                    let func = unsafe { func.take().unwrap_unchecked() };
+                    let func = func.take().expect("function already taken");
                     let fut = func(<_>::from(Yielder::new(stream_address)));
 
                     self.set(Self::Progress { fut });
@@ -83,12 +81,7 @@ where
                 }
                 AsynkStrimProj::Done => break Poll::Ready(None),
                 AsynkStrimProj::MarkerStuff { .. } => {
-                    // the state machine will never enter this state.
-                    // documented on the state machine level.
-                    #[allow(unsafe_code)]
-                    unsafe {
-                        unreachable_unchecked()
-                    }
+                    unreachable!("reached marker state");
                 }
             }
         }

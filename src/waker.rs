@@ -24,7 +24,7 @@ static WAKER_VTABLE: RawWakerVTable =
 #[allow(unsafe_code)]
 unsafe fn waker_clone(data: *const ()) -> RawWaker {
     // we are inside the waker vtable context and the void pointer points to our data struct
-    let inner_waker = unsafe { &*data.cast::<WakerData<'_>>() }
+    let inner_waker = unsafe { data.cast::<WakerData<'_>>().as_ref().unwrap() }
         .inner_waker
         .clone();
     let inner_waker = ManuallyDrop::new(inner_waker);
@@ -39,7 +39,7 @@ fn waker_wake(_data: *const ()) {
 #[allow(unsafe_code)]
 unsafe fn waker_wake_by_ref(data: *const ()) {
     // we are inside the waker vtable context and the void pointer points to our data struct
-    let inner_waker = unsafe { &*data.cast::<WakerData<'_>>() }.inner_waker;
+    let inner_waker = unsafe { data.cast::<WakerData<'_>>().as_ref().unwrap() }.inner_waker;
     inner_waker.wake_by_ref();
 }
 
@@ -55,15 +55,9 @@ fn get_waker_data(waker: &Waker) -> Option<&WakerData<'_>> {
         return None;
     }
 
-    // we never set the data to null or a dangling pointer.
+    // we never set the data to a dangling pointer.
     #[allow(unsafe_code)]
-    let data = unsafe {
-        waker
-            .data()
-            .cast::<WakerData<'_>>()
-            .as_ref()
-            .unwrap_unchecked()
-    };
+    let data = unsafe { waker.data().cast::<WakerData<'_>>().as_ref().unwrap() };
 
     Some(data)
 }
