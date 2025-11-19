@@ -124,7 +124,7 @@ where
     crate::stream::init(|mut yielder: TryYielder<_, _>| async move {
         // trivially copyable. bit-wise copy is fine.
         #[allow(unsafe_code)]
-            if let Err(err) = func(unsafe { core::ptr::read(&raw const yielder) }).await {
+        if let Err(err) = func(unsafe { core::ptr::read(&raw const yielder) }).await {
             yielder.yield_error(err).await;
         }
     })
