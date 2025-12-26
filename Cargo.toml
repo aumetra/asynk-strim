@@ -4,7 +4,7 @@ version = "0.1.4"
 edition = "2021"
 
 # crates.io metadata
-rust-version = "1.83"
+rust-version = "1.89"
 description = "Lightweight stream generator library"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/aumetra/asynk-strim.git"
@@ -29,11 +29,10 @@ futures-core = { version = "0.3.31", default-features = false }
 pin-project-lite = "0.2.14"
 
 [dev-dependencies]
-async-fn-stream = "0.2.2"
+async-fn-stream = "0.3.2"
 async-stream = "0.3.6"
-divan = "0.1.14"
+criterion = { version = "0.7.0", default-features = false, features = ["cargo_bench_support", "plotters"] }
 futures-lite = { version = "2.3.0", default-features = false, features = [
   "std",
 ] }
-mimalloc = "0.1.43"
 trybuild = "1.0.99"

@@ -39,7 +39,7 @@ impl<Item> Future for YieldFuture<Item> {
             };
         };
 
-        assert!(out_ptr.is_none(), "double yield. slow down, bestie");
+        debug_assert!(out_ptr.is_none(), "double yield. slow down, bestie");
         *out_ptr = self.item.take();
 
         Poll::Pending
@@ -72,5 +72,19 @@ impl<Item> Yielder<Item> {
         };
 
         future.await;
+    }
+
+    /// # Intentionally internal
+    ///
+    /// Double yields are not well-defined by the crate and any item may be lost.
+    /// Hence the yielder is not cloneable by the user to avoid misuse.
+    ///
+    /// This function is strictly required so we can yield in the `try_stream` implementation
+    /// after the inner future terminated with an error.
+    pub(crate) fn internal_clone(&self) -> Self {
+        Self {
+            _marker: self._marker,
+            stream_address: self.stream_address,
+        }
     }
 }

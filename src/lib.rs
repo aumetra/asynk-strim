@@ -122,9 +122,7 @@ where
     Fut: Future<Output = Result<(), Error>>,
 {
     crate::stream::init(|mut yielder: TryYielder<_, _>| async move {
-        // trivially copyable. bit-wise copy is fine.
-        #[allow(unsafe_code)]
-        if let Err(err) = func(unsafe { core::ptr::read(&raw const yielder) }).await {
+        if let Err(err) = func(yielder.internal_clone()).await {
             yielder.yield_error(err).await;
         }
     })

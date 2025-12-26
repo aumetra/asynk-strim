@@ -86,17 +86,13 @@ where
 {
     let mut prev = find_frame(waker);
 
-    // we construct the pointers from valid references. so they definitely aren't null.
-    #[allow(unsafe_code)]
-    let data = unsafe {
-        WakerData {
-            inner_waker: waker,
-            frame: StreamFrame {
-                address: stream_address,
-                out_ref: NonNull::new_unchecked(ptr::from_mut(out_ref).cast()),
-                prev: NonNull::new_unchecked(ptr::from_mut(&mut prev)),
-            },
-        }
+    let data = WakerData {
+        inner_waker: waker,
+        frame: StreamFrame {
+            address: stream_address,
+            out_ref: NonNull::from_mut(out_ref).cast(),
+            prev: NonNull::from_mut(&mut prev),
+        },
     };
 
     // we only panic or proxy out to the inner waker.

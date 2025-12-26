@@ -1,45 +1,54 @@
-use divan::{black_box, black_box_drop, AllocProfiler};
-use futures_lite::stream;
-use std::pin::pin;
-
-#[global_allocator]
-static GLOBAL: AllocProfiler<mimalloc::MiMalloc> = AllocProfiler::new(mimalloc::MiMalloc);
+use criterion::{criterion_group, criterion_main, Criterion};
+use futures_lite::{stream, Stream};
+use std::{hint::black_box, pin::pin};
 
 const ITER_COUNT: usize = 1000;
 
-#[divan::bench]
-fn async_stream() {
-    let stream = pin!(async_stream::stream!({
-        for _ in 0..ITER_COUNT {
-            yield black_box(1312);
-        }
-    }));
-
-    stream::block_on(stream).for_each(black_box_drop);
+fn consume_stream<S: Stream + Unpin>(stream: S) {
+    stream::block_on(stream).for_each(|item| black_box(drop)(item))
 }
 
-#[divan::bench]
-fn async_fn_stream() {
-    let stream = pin!(async_fn_stream::fn_stream(|emitter| async move {
-        for _ in 0..ITER_COUNT {
-            emitter.emit(black_box(1312)).await;
-        }
-    }));
+fn async_stream(c: &mut Criterion) {
+    c.bench_function("async_stream", |b| {
+        b.iter(|| {
+            let stream = pin!(async_stream::stream!({
+                for _ in 0..ITER_COUNT {
+                    yield black_box(1312);
+                }
+            }));
 
-    stream::block_on(stream).for_each(black_box_drop);
+            consume_stream(stream);
+        })
+    });
 }
 
-#[divan::bench]
-fn asynk_strim() {
-    let stream = pin!(asynk_strim::strim_fn(|mut yielder| async move {
-        for _ in 0..ITER_COUNT {
-            yielder.yield_item(black_box(1312)).await;
-        }
-    }));
+fn async_fn_stream(c: &mut Criterion) {
+    c.bench_function("async_fn_stream", |b| {
+        b.iter(|| {
+            let stream = pin!(async_fn_stream::fn_stream(|emitter| async move {
+                for _ in 0..ITER_COUNT {
+                    emitter.emit(black_box(1312)).await;
+                }
+            }));
 
-    stream::block_on(stream).for_each(black_box_drop);
+            consume_stream(stream);
+        })
+    });
 }
 
-fn main() {
-    divan::main();
+fn asynk_strim(c: &mut Criterion) {
+    c.bench_function("asynk_strim", |b| {
+        b.iter(|| {
+            let stream = pin!(asynk_strim::strim_fn(|mut yielder| async move {
+                for _ in 0..ITER_COUNT {
+                    yielder.yield_item(black_box(1312)).await;
+                }
+            }));
+
+            consume_stream(stream);
+        })
+    });
 }
+
+criterion_group!(benches, async_stream, async_fn_stream, asynk_strim);
+criterion_main!(benches);

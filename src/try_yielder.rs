@@ -17,6 +17,15 @@ impl<Ok, Error> TryYielder<Ok, Error> {
     pub async fn yield_error(&mut self, item: Error) {
         self.yielder.yield_item(Err(item)).await;
     }
+
+    /// # Interntionally kept private
+    ///
+    /// Check the `internal_clone` impl on `Yielder` for more info.
+    pub(crate) fn internal_clone(&self) -> Self {
+        Self {
+            yielder: self.yielder.internal_clone(),
+        }
+    }
 }
 
 #[doc(hidden)]
