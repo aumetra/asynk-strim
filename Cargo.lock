@@ -58,7 +58,7 @@ dependencies = [
 
 [[package]]
 name = "asynk-strim"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "async-fn-stream",
  "async-stream",
